@@ -1,9 +1,11 @@
+// Elementos del visor grande de imagenes.
 const modal = document.querySelector("#image-modal");
 const modalImage = document.querySelector("#modal-image");
 const modalCaption = document.querySelector("#modal-caption");
 const closeButton = document.querySelector(".modal-close");
 
 function closeModal() {
+    // Si la pagina no tiene modal, no hace nada y evita errores.
     if (!modal || !modalImage || !modalCaption) {
         return;
     }
@@ -16,6 +18,7 @@ function closeModal() {
 
 document.querySelectorAll(".zoomable-image").forEach((image) => {
     image.addEventListener("click", () => {
+        // Al hacer click en una grafica, se copia su imagen al visor grande.
         if (!modal || !modalImage || !modalCaption) {
             return;
         }
@@ -28,11 +31,13 @@ document.querySelectorAll(".zoomable-image").forEach((image) => {
 });
 
 if (closeButton) {
+    // Boton X para cerrar el visor.
     closeButton.addEventListener("click", closeModal);
 }
 
 if (modal) {
     modal.addEventListener("click", (event) => {
+        // Click fuera de la imagen tambien cierra el visor.
         if (event.target === modal) {
             closeModal();
         }
@@ -40,6 +45,7 @@ if (modal) {
 }
 
 document.addEventListener("keydown", (event) => {
+    // Escape cierra el visor sin usar el mouse.
     if (event.key === "Escape") {
         closeModal();
     }

@@ -34,8 +34,15 @@ TEST_DIR = PROJECT_DIR / "data" / "test"
 
 RANDOM_STATE = 42
 TEST_SIZE = 0.30
+
+# Lasso se entrena solo con variables numericas.
+# La columna ESTACION es texto y se deja fuera para mantener el modelo lineal simple.
 LASSO_FEATURES = NUMERIC_FEATURES
+
+# Decision Tree usa numericas + ESTACION, porque la estacion se codifica a numeros.
 TREE_FEATURES = FEATURE_COLUMNS
+
+# Colores reutilizados para que todos los graficos tengan el mismo estilo visual.
 PRIMARY_COLOR = "#28684d"
 SECONDARY_COLOR = "#4f8f7a"
 ACCENT_COLOR = "#b44b35"
@@ -44,6 +51,7 @@ TEXT_COLOR = "#18211d"
 
 
 def style_axis(axis) -> None:
+    # Aplica el estilo visual comun a los graficos exportados al dashboard.
     axis.set_facecolor("#ffffff")
     axis.grid(True, color=GRID_COLOR, linewidth=0.8, alpha=0.75)
     axis.spines["top"].set_visible(False)
@@ -57,6 +65,8 @@ def style_axis(axis) -> None:
 
 
 def one_hot_encoder() -> OneHotEncoder:
+    # OneHotEncoder convierte texto como ESTACION en columnas numericas de 0 y 1.
+    # El try permite que funcione con versiones nuevas y antiguas de scikit-learn.
     try:
         return OneHotEncoder(handle_unknown="ignore", sparse_output=False)
     except TypeError:
@@ -64,8 +74,12 @@ def one_hot_encoder() -> OneHotEncoder:
 
 
 def build_preprocessor(scale_numeric: bool) -> ColumnTransformer:
+    # Prepara las columnas antes de entrenar:
+    # - Numericas: rellena faltantes con la mediana.
+    # - Categoricas: rellena faltantes y convierte texto con OneHotEncoder.
     numeric_steps = [("imputer", SimpleImputer(strategy="median"))]
     if scale_numeric:
+        # Lasso necesita escalado porque sus coeficientes dependen de la magnitud.
         numeric_steps.append(("scaler", StandardScaler()))
 
     return ColumnTransformer(
@@ -87,6 +101,8 @@ def build_preprocessor(scale_numeric: bool) -> ColumnTransformer:
 
 
 def build_lasso_model() -> Pipeline:
+    # Pipeline de Lasso: primero limpia/escala datos numericos y luego entrena.
+    # No se incluye ESTACION porque Lasso trabaja mejor aqui con variables numericas directas.
     preprocessor = ColumnTransformer(
         transformers=[
             (
@@ -111,6 +127,8 @@ def build_lasso_model() -> Pipeline:
 
 
 def build_tree_model() -> Pipeline:
+    # Pipeline del arbol: usa numericas y ESTACION codificada.
+    # max_depth y min_samples_leaf evitan que el arbol memorice demasiado el dataset.
     return Pipeline(
         [
             ("preprocessor", build_preprocessor(scale_numeric=False)),
@@ -127,18 +145,24 @@ def build_tree_model() -> Pipeline:
 
 
 def evaluate(name: str, model: Pipeline, x_test: pd.DataFrame, y_test: pd.Series) -> dict:
+    # Calcula las metricas con datos de prueba que el modelo no vio al entrenar.
     predictions = model.predict(x_test)
     mse = mean_squared_error(y_test, predictions)
     return {
         "modelo": name,
+        # MAE: error absoluto promedio. Menor es mejor.
         "mae": float(mean_absolute_error(y_test, predictions)),
+        # MSE: error cuadratico medio. Penaliza mas los errores grandes.
         "mse": float(mse),
+        # RMSE: raiz del MSE. Esta en la misma unidad de PM 2.5. Menor es mejor.
         "rmse": float(np.sqrt(mse)),
+        # R2: proporcion de variacion explicada por el modelo. Mayor es mejor.
         "r2": float(r2_score(y_test, predictions)),
     }
 
 
 def save_prediction_plot(y_test: pd.Series, predictions: np.ndarray, title: str, file_name: str) -> None:
+    # Grafico de puntos: compara PM 2.5 real contra PM 2.5 predicho.
     fig, axis = plt.subplots(figsize=(7.6, 5.4), facecolor="#f7faf8")
     axis.scatter(
         y_test,
@@ -168,6 +192,7 @@ def save_prediction_plot(y_test: pd.Series, predictions: np.ndarray, title: str,
 
 
 def save_feature_importance(tree_model: Pipeline) -> list[dict]:
+    # Extrae cuales variables influyeron mas en las decisiones del arbol.
     preprocessor = tree_model.named_steps["preprocessor"]
     feature_names = preprocessor.get_feature_names_out()
     importances = tree_model.named_steps["model"].feature_importances_
@@ -199,6 +224,7 @@ def save_feature_importance(tree_model: Pipeline) -> list[dict]:
 
 
 def save_distribution(clean_df: pd.DataFrame) -> None:
+    # Histograma para mostrar como se distribuyen los valores reales de PM 2.5.
     fig, axis = plt.subplots(figsize=(8.2, 5.4), facecolor="#f7faf8")
     axis.hist(
         clean_df[TARGET],
@@ -225,6 +251,7 @@ def save_distribution(clean_df: pd.DataFrame) -> None:
 
 
 def save_metrics_plot(metrics_df: pd.DataFrame) -> None:
+    # Grafico de barras para comparar el RMSE de ambos modelos.
     fig, axis = plt.subplots(figsize=(7.8, 5.2), facecolor="#f7faf8")
     colors = [SECONDARY_COLOR, PRIMARY_COLOR]
     bars = axis.bar(metrics_df["modelo"], metrics_df["rmse"], color=colors[: len(metrics_df)])
@@ -250,6 +277,7 @@ def save_metrics_plot(metrics_df: pd.DataFrame) -> None:
 
 
 def save_tree_decision_view(tree_model: Pipeline) -> dict:
+    # Genera una imagen con los primeros niveles del arbol para explicar su decision.
     estimator = tree_model.named_steps["model"]
     feature_names = list(tree_model.named_steps["preprocessor"].get_feature_names_out())
 
@@ -278,8 +306,11 @@ def save_tree_decision_view(tree_model: Pipeline) -> dict:
 
     rules = export_text(estimator, feature_names=feature_names, max_depth=3)
     rule_lines = [line for line in rules.splitlines() if line.strip()]
+
+    # Guarda las reglas en texto para mostrarlas o revisarlas fuera del dashboard.
     (REPORTS_DIR / "reglas_decision_tree.txt").write_text(rules, encoding="utf-8")
 
+    # La raiz es la primera pregunta que hace el Decision Tree.
     root_feature_index = int(estimator.tree_.feature[0])
     root_feature = feature_names[root_feature_index]
     root_threshold = float(estimator.tree_.threshold[0])
@@ -291,6 +322,7 @@ def save_tree_decision_view(tree_model: Pipeline) -> dict:
 
 
 def main() -> None:
+    # Crea carpetas necesarias si aun no existen.
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
     IMAGES_DIR.mkdir(parents=True, exist_ok=True)
@@ -299,8 +331,10 @@ def main() -> None:
 
     clean_path = PROCESSED_DIR / "datos_modelo.csv"
     if clean_path.exists():
+        # Si ya existe el dataset limpio para modelar, se reutiliza.
         model_df = pd.read_csv(clean_path)
     else:
+        # Si no existe, se limpia desde el Excel original.
         raw_df = load_raw_data()
         clean_df = clean_data(raw_df)
         clean_df.to_csv(PROCESSED_DIR / "datos_limpios.csv", index=False)
@@ -310,6 +344,7 @@ def main() -> None:
     x = model_df[FEATURE_COLUMNS]
     y = model_df[TARGET]
 
+    # Divide los datos: una parte entrena y otra evalua el desempeno real.
     x_train, x_test, y_train, y_test = train_test_split(
         x,
         y,
@@ -320,12 +355,18 @@ def main() -> None:
 
     lasso = build_lasso_model()
     tree = build_tree_model()
+
+    # Lasso solo recibe las variables numericas definidas en LASSO_FEATURES.
     lasso.fit(x_train[LASSO_FEATURES], y_train)
+
+    # Decision Tree recibe todas las variables, incluida ESTACION.
     tree.fit(x_train, y_train)
 
+    # Guarda los modelos entrenados en .pkl para que el dashboard prediga sin reentrenar.
     joblib.dump(lasso, MODELS_DIR / "lasso_regression.pkl")
     joblib.dump(tree, MODELS_DIR / "decision_tree_regressor.pkl")
 
+    # Predicciones sobre datos de prueba para calcular metricas y graficos.
     lasso_predictions = lasso.predict(x_test[LASSO_FEATURES])
     tree_predictions = tree.predict(x_test)
     metrics = [
@@ -333,6 +374,8 @@ def main() -> None:
         evaluate("Decision Tree Regressor", tree, x_test, y_test),
     ]
     metrics_df = pd.DataFrame(metrics)
+
+    # Guarda metricas en CSV/Excel para sustentarlas en el informe o exposicion.
     metrics_df.to_csv(REPORTS_DIR / "metricas_modelos.csv", index=False)
     metrics_df.to_excel(REPORTS_DIR / "resultados.xlsx", index=False)
 
@@ -343,6 +386,7 @@ def main() -> None:
     save_metrics_plot(metrics_df)
     tree_decision = save_tree_decision_view(tree)
 
+    # JSON central: el dashboard lee este archivo para mostrar metricas, reglas y variables.
     summary = {
         "target": TARGET,
         "features": FEATURE_COLUMNS,

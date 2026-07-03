@@ -21,6 +21,7 @@
     </header>
 
     <main class="page dashboard-page">
+        <!-- Banner principal para indicar que el dashboard ya incluye graficos y arbol. -->
         <section class="update-banner">
             <div>
                 <p class="eyebrow">Dashboard actualizado</p>
@@ -29,6 +30,7 @@
             <a class="button" href="#decision-tree">Ver Decision Tree</a>
         </section>
 
+        <!-- Tarjetas resumen: datos usados, mejor modelo y primera decision del arbol. -->
         <section class="dashboard-summary">
             <article class="summary-tile">
                 <span>Datos usados</span>
@@ -44,6 +46,7 @@
             </article>
         </section>
 
+        <!-- Graficos principales generados desde scripts/entrenar_modelos.py. -->
         <section class="chart-grid">
             <figure class="chart-card">
                 <img class="zoomable-image" src="{{ url_for('imagenes', filename='distribucion_pm25.png', v=app_version) }}" alt="Distribucion de PM2.5" data-title="Distribucion de PM2.5">
@@ -59,6 +62,7 @@
             </figure>
         </section>
 
+        <!-- Explicacion visual de como el Decision Tree toma decisiones. -->
         <section class="decision-section" id="decision-tree">
             <div class="section-heading">
                 <div>
@@ -87,12 +91,14 @@
                         compara una variable con un umbral y avanza hasta llegar
                         a una prediccion de PM2.5.
                     </p>
+                    <!-- Reglas leidas desde reports/metricas_modelos.json. -->
                     <pre class="tree-rules">{% for line in metrics_data.tree_rules or [] %}{{ line }}
 {% endfor %}</pre>
                 </article>
             </div>
         </section>
     </main>
+    <!-- Modal reutilizable: permite abrir cualquier grafico en grande al hacer click. -->
     <div class="image-modal" id="image-modal" aria-hidden="true">
         <button class="modal-close" type="button" aria-label="Cerrar imagen">&times;</button>
         <figure>

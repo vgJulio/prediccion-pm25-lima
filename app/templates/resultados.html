@@ -21,15 +21,19 @@
     </header>
 
     <main class="page two-column">
+        <!-- Formulario: cada campo corresponde a una variable usada por el modelo. -->
         <section class="panel">
             <h2>Datos de entrada</h2>
             <form method="post" class="prediction-form">
+                <!-- Permite elegir que modelo .pkl se usara para calcular PM2.5. -->
                 <label>Modelo
                     <select name="modelo">
                         <option value="tree" {% if selected_model == "tree" %}selected{% endif %}>Decision Tree</option>
                         <option value="lasso" {% if selected_model == "lasso" %}selected{% endif %}>Lasso Regression</option>
                     </select>
                 </label>
+
+                <!-- Variables numericas ambientales y temporales. -->
                 <label>PM10 <input type="number" step="0.01" name="pm10" value="{{ form_values.pm10 }}" required></label>
                 <label>SO2 <input type="number" step="0.01" name="so2" value="{{ form_values.so2 }}" required></label>
                 <label>NO2 <input type="number" step="0.01" name="no2" value="{{ form_values.no2 }}" required></label>
@@ -39,6 +43,8 @@
                 <label>Mes <input type="number" min="1" max="12" name="mes" value="{{ form_values.mes }}" required></label>
                 <label>Dia <input type="number" min="1" max="31" name="dia" value="{{ form_values.dia }}" required></label>
                 <label>Hora <input type="number" min="0" max="23" name="hora" value="{{ form_values.hora }}" required></label>
+
+                <!-- ESTACION solo aporta informacion al Decision Tree; Lasso usa variables numericas. -->
                 <label>Estacion
                     <select name="estacion">
                         {% for station in stations %}
@@ -50,6 +56,7 @@
             </form>
         </section>
 
+        <!-- Panel donde se muestra la prediccion devuelta por app/predictor.py. -->
         <aside class="panel result-panel">
             <h2>Resultado</h2>
             {% if error %}

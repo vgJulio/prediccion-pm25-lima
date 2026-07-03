@@ -11,10 +11,12 @@ PROJECT_DIR = Path(__file__).resolve().parents[1]
 MODELS_DIR = PROJECT_DIR / "models"
 REPORTS_DIR = PROJECT_DIR / "reports"
 
+# Rutas donde se guardan los modelos entrenados y las metricas.
 LASSO_PATH = MODELS_DIR / "lasso_regression.pkl"
 TREE_PATH = MODELS_DIR / "decision_tree_regressor.pkl"
 METRICS_PATH = REPORTS_DIR / "metricas_modelos.json"
 
+# Orden exacto de columnas que el modelo espera recibir.
 FEATURE_COLUMNS = [
     "PM 10",
     "SO2",
@@ -28,6 +30,7 @@ FEATURE_COLUMNS = [
     "ESTACION",
 ]
 
+# Valores iniciales que aparecen en el formulario de prediccion.
 DEFAULT_VALUES = {
     "pm10": "80",
     "so2": "8",
@@ -43,12 +46,14 @@ DEFAULT_VALUES = {
 
 
 def load_metrics() -> dict:
+    # Carga metricas, variables y reglas del arbol para mostrarlas en el dashboard.
     if not METRICS_PATH.exists():
         return {"metrics": [], "stations": ["ATE"]}
     return json.loads(METRICS_PATH.read_text(encoding="utf-8"))
 
 
 def load_models() -> dict:
+    # Carga los .pkl generados por scripts/entrenar_modelos.py.
     if not LASSO_PATH.exists() or not TREE_PATH.exists():
         return {}
     return {
@@ -58,6 +63,8 @@ def load_models() -> dict:
 
 
 def build_input(form_data: dict) -> pd.DataFrame:
+    # Convierte los datos escritos en el formulario HTML a una fila de pandas.
+    # Los nombres deben coincidir con las columnas usadas durante el entrenamiento.
     row = {
         "PM 10": float(form_data.get("pm10", DEFAULT_VALUES["pm10"])),
         "SO2": float(form_data.get("so2", DEFAULT_VALUES["so2"])),
@@ -74,6 +81,7 @@ def build_input(form_data: dict) -> pd.DataFrame:
 
 
 def predict(model_key: str, form_data: dict) -> float:
+    # Selecciona el modelo pedido por el usuario y devuelve la prediccion de PM 2.5.
     models = load_models()
     if model_key not in models:
         raise FileNotFoundError("Primero entrene los modelos con scripts/entrenar_modelos.py")

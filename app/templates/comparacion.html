@@ -21,6 +21,7 @@
     </header>
 
     <main class="page">
+        <!-- Tabla con metricas calculadas en scripts/entrenar_modelos.py. -->
         <section class="panel">
             <h2>Metricas de evaluacion</h2>
             <div class="table-wrap">
@@ -47,6 +48,7 @@
             </div>
         </section>
 
+        <!-- Graficos real vs predicho para revisar visualmente el error de cada modelo. -->
         <section class="chart-grid two">
             <figure class="chart-card">
                 <img class="zoomable-image" src="{{ url_for('imagenes', filename='lasso_real_vs_predicho.png', v=app_version) }}" alt="Lasso real vs predicho" data-title="Lasso Regression - real vs predicho">
@@ -58,6 +60,7 @@
             </figure>
         </section>
     </main>
+    <!-- Modal para ampliar los graficos con click. -->
     <div class="image-modal" id="image-modal" aria-hidden="true">
         <button class="modal-close" type="button" aria-label="Cerrar imagen">&times;</button>
         <figure>
