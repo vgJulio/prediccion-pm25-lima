@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparacion de modelos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css', v=app_version) }}">
+</head>
+<body>
+    <header class="topbar">
+        <div>
+            <p class="eyebrow">Metricas</p>
+            <h1>Lasso vs Decision Tree</h1>
+        </div>
+        <nav>
+            <a href="{{ url_for('index') }}">Inicio</a>
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a class="active" href="{{ url_for('comparacion') }}">Comparacion</a>
+            <a href="{{ url_for('resultados') }}">Prediccion</a>
+        </nav>
+    </header>
+
+    <main class="page">
+        <section class="panel">
+            <h2>Metricas de evaluacion</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Modelo</th>
+                            <th>MAE</th>
+                            <th>RMSE</th>
+                            <th>R2</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in metrics_data.metrics %}
+                        <tr>
+                            <td>{{ row.modelo }}</td>
+                            <td>{{ "%.4f"|format(row.mae) }}</td>
+                            <td>{{ "%.4f"|format(row.rmse) }}</td>
+                            <td>{{ "%.4f"|format(row.r2) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="chart-grid two">
+            <figure class="chart-card">
+                <img class="zoomable-image" src="{{ url_for('imagenes', filename='lasso_real_vs_predicho.png', v=app_version) }}" alt="Lasso real vs predicho" data-title="Lasso Regression - real vs predicho">
+                <figcaption>Lasso Regression <span>Click para ampliar</span></figcaption>
+            </figure>
+            <figure class="chart-card">
+                <img class="zoomable-image" src="{{ url_for('imagenes', filename='tree_real_vs_predicho.png', v=app_version) }}" alt="Decision Tree real vs predicho" data-title="Decision Tree - real vs predicho">
+                <figcaption>Decision Tree Regressor <span>Click para ampliar</span></figcaption>
+            </figure>
+        </section>
+    </main>
+    <div class="image-modal" id="image-modal" aria-hidden="true">
+        <button class="modal-close" type="button" aria-label="Cerrar imagen">&times;</button>
+        <figure>
+            <img id="modal-image" src="" alt="">
+            <figcaption id="modal-caption"></figcaption>
+        </figure>
+    </div>
+    <script src="{{ url_for('static', filename='js/dashboard.js', v=app_version) }}"></script>
+</body>
+</html>

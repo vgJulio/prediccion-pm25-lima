@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard PM2.5</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css', v=app_version) }}">
+</head>
+<body>
+    <header class="topbar">
+        <div>
+            <p class="eyebrow">Dashboard</p>
+            <h1>Resumen del modelo</h1>
+        </div>
+        <nav>
+            <a href="{{ url_for('index') }}">Inicio</a>
+            <a class="active" href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('comparacion') }}">Comparacion</a>
+            <a href="{{ url_for('resultados') }}">Prediccion</a>
+        </nav>
+    </header>
+
+    <main class="page dashboard-page">
+        <section class="update-banner">
+            <div>
+                <p class="eyebrow">Dashboard actualizado</p>
+                <h2>Graficos profesionales y toma de decisiones del arbol</h2>
+            </div>
+            <a class="button" href="#decision-tree">Ver Decision Tree</a>
+        </section>
+
+        <section class="dashboard-summary">
+            <article class="summary-tile">
+                <span>Datos usados</span>
+                <strong>{{ "{:,}".format(metrics_data.rows or 0) }}</strong>
+            </article>
+            <article class="summary-tile">
+                <span>Mejor modelo</span>
+                <strong>Decision Tree</strong>
+            </article>
+            <article class="summary-tile">
+                <span>Primera decision</span>
+                <strong>{{ metrics_data.tree_root_feature or "PM 10" }}</strong>
+            </article>
+        </section>
+
+        <section class="chart-grid">
+            <figure class="chart-card">
+                <img class="zoomable-image" src="{{ url_for('imagenes', filename='distribucion_pm25.png', v=app_version) }}" alt="Distribucion de PM2.5" data-title="Distribucion de PM2.5">
+                <figcaption>Distribucion de PM2.5 <span>Click para ampliar</span></figcaption>
+            </figure>
+            <figure class="chart-card">
+                <img class="zoomable-image" src="{{ url_for('imagenes', filename='feature_importance.png', v=app_version) }}" alt="Importancia de variables" data-title="Variables importantes">
+                <figcaption>Variables importantes <span>Click para ampliar</span></figcaption>
+            </figure>
+            <figure class="chart-card">
+                <img class="zoomable-image" src="{{ url_for('imagenes', filename='comparacion_modelos.png', v=app_version) }}" alt="Comparacion de modelos" data-title="Comparacion por RMSE">
+                <figcaption>Comparacion por RMSE <span>Click para ampliar</span></figcaption>
+            </figure>
+        </section>
+
+        <section class="decision-section" id="decision-tree">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Toma de decisiones</p>
+                    <h2>Como decide el Decision Tree</h2>
+                </div>
+                <p>
+                    El arbol divide los datos con reglas. En este entrenamiento,
+                    la primera separacion usa
+                    <strong>{{ metrics_data.tree_root_feature or "PM 10" }}</strong>
+                    con un umbral aproximado de
+                    <strong>{{ "%.2f"|format(metrics_data.tree_root_threshold or 0) }}</strong>.
+                </p>
+            </div>
+
+            <div class="decision-grid">
+                <figure class="chart-card tree-card">
+                    <img class="zoomable-image" src="{{ url_for('imagenes', filename='decision_tree_decisiones.png', v=app_version) }}" alt="Primeras decisiones del Decision Tree" data-title="Primeros niveles del arbol">
+                    <figcaption>Primeros niveles del arbol <span>Click para ampliar</span></figcaption>
+                </figure>
+
+                <article class="panel rules-panel">
+                    <h2>Reglas principales</h2>
+                    <p>
+                        Estas reglas muestran el camino que sigue el arbol:
+                        compara una variable con un umbral y avanza hasta llegar
+                        a una prediccion de PM2.5.
+                    </p>
+                    <pre class="tree-rules">{% for line in metrics_data.tree_rules or [] %}{{ line }}
+{% endfor %}</pre>
+                </article>
+            </div>
+        </section>
+    </main>
+    <div class="image-modal" id="image-modal" aria-hidden="true">
+        <button class="modal-close" type="button" aria-label="Cerrar imagen">&times;</button>
+        <figure>
+            <img id="modal-image" src="" alt="">
+            <figcaption id="modal-caption"></figcaption>
+        </figure>
+    </div>
+    <script src="{{ url_for('static', filename='js/dashboard.js', v=app_version) }}"></script>
+</body>
+</html>

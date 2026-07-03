@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediccion PM2.5</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css', v=app_version) }}">
+</head>
+<body>
+    <header class="topbar">
+        <div>
+            <p class="eyebrow">Prediccion</p>
+            <h1>Calcular PM2.5 estimado</h1>
+        </div>
+        <nav>
+            <a href="{{ url_for('index') }}">Inicio</a>
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('comparacion') }}">Comparacion</a>
+            <a class="active" href="{{ url_for('resultados') }}">Prediccion</a>
+        </nav>
+    </header>
+
+    <main class="page two-column">
+        <section class="panel">
+            <h2>Datos de entrada</h2>
+            <form method="post" class="prediction-form">
+                <label>Modelo
+                    <select name="modelo">
+                        <option value="tree" {% if selected_model == "tree" %}selected{% endif %}>Decision Tree</option>
+                        <option value="lasso" {% if selected_model == "lasso" %}selected{% endif %}>Lasso Regression</option>
+                    </select>
+                </label>
+                <label>PM10 <input type="number" step="0.01" name="pm10" value="{{ form_values.pm10 }}" required></label>
+                <label>SO2 <input type="number" step="0.01" name="so2" value="{{ form_values.so2 }}" required></label>
+                <label>NO2 <input type="number" step="0.01" name="no2" value="{{ form_values.no2 }}" required></label>
+                <label>O3 <input type="number" step="0.01" name="o3" value="{{ form_values.o3 }}" required></label>
+                <label>CO <input type="number" step="0.01" name="co" value="{{ form_values.co }}" required></label>
+                <label>Ano <input type="number" name="ano" value="{{ form_values.ano }}" required></label>
+                <label>Mes <input type="number" min="1" max="12" name="mes" value="{{ form_values.mes }}" required></label>
+                <label>Dia <input type="number" min="1" max="31" name="dia" value="{{ form_values.dia }}" required></label>
+                <label>Hora <input type="number" min="0" max="23" name="hora" value="{{ form_values.hora }}" required></label>
+                <label>Estacion
+                    <select name="estacion">
+                        {% for station in stations %}
+                        <option value="{{ station }}" {% if station == form_values.estacion %}selected{% endif %}>{{ station }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <button type="submit">Predecir</button>
+            </form>
+        </section>
+
+        <aside class="panel result-panel">
+            <h2>Resultado</h2>
+            {% if error %}
+                <p class="error">{{ error }}</p>
+            {% elif prediction is not none %}
+                <p class="prediction-number">{{ prediction }}</p>
+                <p>Concentracion estimada de PM2.5.</p>
+            {% else %}
+                <p>Ingrese valores para obtener una prediccion.</p>
+            {% endif %}
+        </aside>
+    </main>
+</body>
+</html>

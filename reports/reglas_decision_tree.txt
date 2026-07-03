@@ -1,0 +1,46 @@
+|--- PM 10 <= 82.64
+|   |--- PM 10 <= 53.50
+|   |   |--- PM 10 <= 36.04
+|   |   |   |--- ESTACION_SAN JUAN DE LURIGANCHO <= 0.50
+|   |   |   |   |--- truncated branch of depth 5
+|   |   |   |--- ESTACION_SAN JUAN DE LURIGANCHO >  0.50
+|   |   |   |   |--- truncated branch of depth 5
+|   |   |--- PM 10 >  36.04
+|   |   |   |--- ESTACION_SAN BORJA  <= 0.50
+|   |   |   |   |--- truncated branch of depth 5
+|   |   |   |--- ESTACION_SAN BORJA  >  0.50
+|   |   |   |   |--- truncated branch of depth 5
+|   |--- PM 10 >  53.50
+|   |   |--- HORA <= 13.50
+|   |   |   |--- MES <= 4.50
+|   |   |   |   |--- truncated branch of depth 5
+|   |   |   |--- MES >  4.50
+|   |   |   |   |--- truncated branch of depth 5
+|   |   |--- HORA >  13.50
+|   |   |   |--- ESTACION_SAN BORJA  <= 0.50
+|   |   |   |   |--- truncated branch of depth 5
+|   |   |   |--- ESTACION_SAN BORJA  >  0.50
+|   |   |   |   |--- truncated branch of depth 5
+|--- PM 10 >  82.64
+|   |--- HORA <= 12.50
+|   |   |--- PM 10 <= 137.87
+|   |   |   |--- MES <= 3.50
+|   |   |   |   |--- truncated branch of depth 5
+|   |   |   |--- MES >  3.50
+|   |   |   |   |--- truncated branch of depth 5
+|   |   |--- PM 10 >  137.87
+|   |   |   |--- ESTACION_VILLA MARIA DEL TRIUNFO <= 0.50
+|   |   |   |   |--- truncated branch of depth 5
+|   |   |   |--- ESTACION_VILLA MARIA DEL TRIUNFO >  0.50
+|   |   |   |   |--- truncated branch of depth 5
+|   |--- HORA >  12.50
+|   |   |--- PM 10 <= 119.87
+|   |   |   |--- ESTACION_VILLA MARIA DEL TRIUNFO <= 0.50
+|   |   |   |   |--- truncated branch of depth 5
+|   |   |   |--- ESTACION_VILLA MARIA DEL TRIUNFO >  0.50
+|   |   |   |   |--- truncated branch of depth 5
+|   |   |--- PM 10 >  119.87
+|   |   |   |--- ESTACION_VILLA MARIA DEL TRIUNFO <= 0.50
+|   |   |   |   |--- truncated branch of depth 5
+|   |   |   |--- ESTACION_VILLA MARIA DEL TRIUNFO >  0.50
+|   |   |   |   |--- truncated branch of depth 5
