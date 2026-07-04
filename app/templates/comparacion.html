@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparacion de modelos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css', v=app_version) }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner"></div>
+        <span>Calculando...</span>
+    </div>
+    <header class="topbar">
+        <div>
+            <p class="eyebrow">Metricas</p>
+            <h1>Lasso vs Decision Tree</h1>
+        </div>
+        <nav>
+            <a href="{{ url_for('index') }}">Inicio</a>
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a class="active" href="{{ url_for('comparacion') }}">Comparacion</a>
+            <a href="{{ url_for('modelo_matematico') }}">Modelo matematico</a>
+            <a href="{{ url_for('exploracion') }}">Exploracion</a>
+            <a href="{{ url_for('residuales') }}">Residuales</a>
+            <a href="{{ url_for('mapa') }}">Mapa</a>
+            <a href="{{ url_for('resultados') }}">Prediccion</a>
+        </nav>
+    </header>
+
+    <main class="page">
+        <!-- Tabla con metricas calculadas en scripts/entrenar_modelos.py. -->
+        <section class="panel">
+            <h2>Metricas de evaluacion</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Modelo</th>
+                            <th>MAE</th>
+                            <th>RMSE</th>
+                            <th>R2</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in metrics_data.metrics %}
+                        <tr>
+                            <td>{{ row.modelo }}</td>
+                            <td>{{ "%.4f"|format(row.mae) }}</td>
+                            <td>{{ "%.4f"|format(row.rmse) }}</td>
+                            <td>{{ "%.4f"|format(row.r2) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Estos valores se guardaron la ultima vez que se ejecuto
+                <code>scripts/entrenar_modelos.py</code>.
+            </p>
+            <a class="button js-loading-trigger" href="{{ url_for('comparacion', recalcular=1) }}">Recalcular metricas ahora</a>
+        </section>
+
+        {% if live_metrics %}
+        <!-- Metricas recalculadas en este mismo request: carga datos_prueba.csv, predice con
+             los .pkl y calcula MAE/RMSE/R2 con sklearn.metrics al momento. -->
+        <section class="panel">
+            <h2>Metricas recalculadas en este momento</h2>
+            <p>
+                Calculado ahora mismo con <code>sklearn.metrics</code> sobre
+                <code>data/test/datos_prueba.csv</code>, sin leer
+                <code>metricas_modelos.json</code>.
+            </p>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Modelo</th>
+                            <th>MAE</th>
+                            <th>RMSE</th>
+                            <th>R2</th>
+                            <th>Filas evaluadas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in live_metrics %}
+                        <tr>
+                            <td>{{ row.modelo }}</td>
+                            <td>{{ "%.4f"|format(row.mae) }}</td>
+                            <td>{{ "%.4f"|format(row.rmse) }}</td>
+                            <td>{{ "%.4f"|format(row.r2) }}</td>
+                            <td>{{ "{:,}".format(row.filas_evaluadas) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Graficos real vs predicho para revisar visualmente el error de cada modelo. -->
+        <section class="chart-grid two">
+            <figure class="chart-card">
+                <img class="zoomable-image" src="{{ url_for('imagenes', filename='lasso_real_vs_predicho.png', v=app_version) }}" alt="Lasso real vs predicho" data-title="Lasso Regression - real vs predicho">
+                <figcaption>Lasso Regression <span>Click para ampliar</span></figcaption>
+            </figure>
+            <figure class="chart-card">
+                <img class="zoomable-image" src="{{ url_for('imagenes', filename='tree_real_vs_predicho.png', v=app_version) }}" alt="Decision Tree real vs predicho" data-title="Decision Tree - real vs predicho">
+                <figcaption>Decision Tree Regressor <span>Click para ampliar</span></figcaption>
+            </figure>
+        </section>
+    </main>
+    <!-- Modal para ampliar los graficos con click. -->
+    <div class="image-modal" id="image-modal" aria-hidden="true">
+        <button class="modal-close" type="button" aria-label="Cerrar imagen">&times;</button>
+        <figure>
+            <img id="modal-image" src="" alt="">
+            <figcaption id="modal-caption"></figcaption>
+        </figure>
+    </div>
+    <script src="{{ url_for('static', filename='js/dashboard.js', v=app_version) }}"></script>
+    <footer class="site-footer">
+        <p><strong>Prediccion PM2.5 Lima</strong> &mdash; Proyecto academico de Machine Learning (Lasso Regression y Decision Tree Regressor) sobre datos horarios de SENAMHI.</p>
+    </footer>
+</body>
+</html>

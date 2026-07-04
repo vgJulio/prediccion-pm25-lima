@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa de estaciones</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css', v=app_version) }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+</head>
+<body>
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner"></div>
+        <span>Calculando...</span>
+    </div>
+    <header class="topbar">
+        <div>
+            <p class="eyebrow">Geografia</p>
+            <h1>Mapa de estaciones de monitoreo</h1>
+        </div>
+        <nav>
+            <a href="{{ url_for('index') }}">Inicio</a>
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('comparacion') }}">Comparacion</a>
+            <a href="{{ url_for('modelo_matematico') }}">Modelo matematico</a>
+            <a href="{{ url_for('exploracion') }}">Exploracion</a>
+            <a href="{{ url_for('residuales') }}">Residuales</a>
+            <a class="active" href="{{ url_for('mapa') }}">Mapa</a>
+            <a href="{{ url_for('resultados') }}">Prediccion</a>
+        </nav>
+    </header>
+
+    <main class="page">
+        <section class="panel">
+            <h2>Promedio historico de PM2.5 por estacion</h2>
+            <p>
+                Cada marcador representa una estacion de monitoreo de SENAMHI en Lima
+                Metropolitana. El color indica la categoria de calidad de aire segun el
+                promedio historico de PM2.5 registrado en <code>data/processed/datos_limpios.csv</code>.
+                <strong>Nota:</strong> SENAMHI no publica la coordenada exacta del sensor en
+                los datos abiertos, asi que el marcador se ubica en el centro aproximado del
+                distrito donde opera cada estacion.
+            </p>
+        </section>
+
+        <section class="panel">
+            <div id="station-map"></div>
+        </section>
+
+        <section class="panel">
+            <h2>Detalle por estacion</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Estacion</th>
+                            <th>Promedio PM2.5</th>
+                            <th>Categoria</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in estaciones %}
+                        <tr>
+                            <td>{{ item.estacion }}</td>
+                            <td>{{ item.promedio_pm25 }}</td>
+                            <td><span class="quality-badge" style="background: {{ item.color }};">{{ item.categoria }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script>
+        const estaciones = {{ estaciones | tojson }};
+
+        const map = L.map('station-map').setView([-12.04, -77.0], 11);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors',
+            maxZoom: 18,
+        }).addTo(map);
+
+        estaciones.forEach((item) => {
+            const marker = L.circleMarker([item.lat, item.lon], {
+                radius: 12,
+                color: '#ffffff',
+                weight: 2,
+                fillColor: item.color,
+                fillOpacity: 0.9,
+            }).addTo(map);
+
+            marker.bindPopup(
+                `<strong>${item.estacion}</strong><br>` +
+                `Promedio PM2.5: ${item.promedio_pm25}<br>` +
+                `Categoria: ${item.categoria}`
+            );
+        });
+    </script>
+    <footer class="site-footer">
+        <p><strong>Prediccion PM2.5 Lima</strong> &mdash; Proyecto academico de Machine Learning (Lasso Regression y Decision Tree Regressor) sobre datos horarios de SENAMHI.</p>
+    </footer>
+    <script src="{{ url_for('static', filename='js/dashboard.js', v=app_version) }}"></script>
+</body>
+</html>

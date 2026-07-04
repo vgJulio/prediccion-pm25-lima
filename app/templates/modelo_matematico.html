@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modelo matematico</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css', v=app_version) }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner"></div>
+        <span>Calculando...</span>
+    </div>
+    <header class="topbar">
+        <div>
+            <p class="eyebrow">Fundamento</p>
+            <h1>Modelo matematico de cada algoritmo</h1>
+        </div>
+        <nav>
+            <a href="{{ url_for('index') }}">Inicio</a>
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('comparacion') }}">Comparacion</a>
+            <a class="active" href="{{ url_for('modelo_matematico') }}">Modelo matematico</a>
+            <a href="{{ url_for('exploracion') }}">Exploracion</a>
+            <a href="{{ url_for('residuales') }}">Residuales</a>
+            <a href="{{ url_for('mapa') }}">Mapa</a>
+            <a href="{{ url_for('resultados') }}">Prediccion</a>
+        </nav>
+    </header>
+
+    <main class="page">
+        <!-- Ecuacion de Lasso Regression armada con los coeficientes reales del .pkl entrenado. -->
+        <section class="panel">
+            <h2>Lasso Regression: ecuacion lineal</h2>
+            <p>
+                Lasso ajusta una combinacion lineal de las variables numericas para estimar
+                PM 2.5. Antes de entrenar, cada variable se escala con <code>StandardScaler</code>
+                (media 0, desviacion 1), por eso los coeficientes de abajo no se aplican
+                directamente sobre los valores originales del formulario, sino sobre la version
+                escalada de cada variable.
+            </p>
+
+            <pre class="tree-rules">PM2.5 ~= {{ "%.3f"|format(metrics_data.lasso_equation.intercepto or 0) }}
+{% for term in metrics_data.lasso_equation.terminos or [] %}{{ "%+.3f"|format(term.coeficiente) }} * {{ term.variable }}(escalada)
+{% endfor %}</pre>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>Coeficiente</th>
+                            <th>Interpretacion</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for term in metrics_data.lasso_equation.terminos or [] %}
+                        <tr>
+                            <td>{{ term.variable }}</td>
+                            <td>{{ "%.4f"|format(term.coeficiente) }}</td>
+                            <td>
+                                {% if term.coeficiente > 0 %}
+                                    Sube junto con PM 2.5
+                                {% elif term.coeficiente < 0 %}
+                                    Baja cuando PM 2.5 sube
+                                {% else %}
+                                    Sin efecto (Lasso la elimino)
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <p>
+                Lasso agrega una penalizacion L1 a la funcion de costo tradicional de
+                regresion lineal:
+            </p>
+            <pre class="tree-rules">costo = error_cuadratico_medio + alpha * suma( |coeficiente| )
+alpha = {{ metrics_data.lasso_equation.alpha or 0 }}</pre>
+            <p>
+                Esa penalizacion puede llevar coeficientes exactamente a cero, lo que
+                equivale a que el modelo descarte una variable por completo. En este
+                entrenamiento, Lasso dejo en cero
+                <strong>{{ metrics_data.lasso_equation.variables_en_cero or 0 }}</strong>
+                variable(s).
+            </p>
+        </section>
+
+        <!-- Explicacion matematica del Decision Tree: criterio de division y prediccion por hoja. -->
+        <section class="panel">
+            <h2>Decision Tree Regressor: como calcula su prediccion</h2>
+            <p>
+                El arbol no ajusta una formula continua como Lasso. En cada nodo prueba
+                cortes del tipo <code>variable &lt;= umbral</code> y elige el que mas reduce
+                el error cuadratico medio (<strong>{{ metrics_data.tree_math.criterion or "squared_error" }}</strong>)
+                entre los dos grupos resultantes. Este proceso se repite hasta llegar a las
+                hojas finales.
+            </p>
+            <p>
+                La primera pregunta que hace el arbol (nodo raiz) es
+                <strong>{{ metrics_data.tree_root_feature or "PM 10" }}</strong>
+                &lt;=
+                <strong>{{ "%.2f"|format(metrics_data.tree_root_threshold or 0) }}</strong>,
+                evaluada sobre las
+                <strong>{{ "{:,}".format(metrics_data.tree_math.root_samples or 0) }}</strong>
+                filas de entrenamiento.
+            </p>
+            <p>
+                La prediccion final de cualquier hoja es simplemente el <strong>promedio</strong>
+                de PM 2.5 de las filas de entrenamiento que terminaron en ese grupo. Por ejemplo,
+                antes de hacer ningun corte, el promedio general (prediccion del nodo raiz) es
+                <strong>{{ "%.2f"|format(metrics_data.tree_math.root_prediction or 0) }}</strong>.
+            </p>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Parametro</th>
+                            <th>Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Profundidad maxima configurada</td>
+                            <td>{{ metrics_data.tree_math.max_depth_configurado or "-" }}</td>
+                        </tr>
+                        <tr>
+                            <td>Minimo de muestras por hoja</td>
+                            <td>{{ metrics_data.tree_math.min_samples_leaf or "-" }}</td>
+                        </tr>
+                        <tr>
+                            <td>Hojas totales generadas</td>
+                            <td>{{ metrics_data.tree_math.n_leaves or "-" }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Dato curioso: intercepto de Lasso y prediccion raiz del arbol representan lo mismo. -->
+        <section class="update-banner">
+            <div>
+                <p class="eyebrow">Coincidencia matematica</p>
+                <h2>
+                    El intercepto de Lasso ({{ "%.2f"|format(metrics_data.lasso_equation.intercepto or 0) }})
+                    y la prediccion raiz del arbol
+                    ({{ "%.2f"|format(metrics_data.tree_math.root_prediction or 0) }})
+                    son casi identicos
+                </h2>
+            </div>
+        </section>
+    </main>
+    <footer class="site-footer">
+        <p><strong>Prediccion PM2.5 Lima</strong> &mdash; Proyecto academico de Machine Learning (Lasso Regression y Decision Tree Regressor) sobre datos horarios de SENAMHI.</p>
+    </footer>
+    <script src="{{ url_for('static', filename='js/dashboard.js', v=app_version) }}"></script>
+</body>
+</html>

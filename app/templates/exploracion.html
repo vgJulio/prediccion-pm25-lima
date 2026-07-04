@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exploracion en vivo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css', v=app_version) }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner"></div>
+        <span>Calculando...</span>
+    </div>
+    <header class="topbar">
+        <div>
+            <p class="eyebrow">Analisis en vivo</p>
+            <h1>Exploracion de datos (EDA)</h1>
+        </div>
+        <nav>
+            <a href="{{ url_for('index') }}">Inicio</a>
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('comparacion') }}">Comparacion</a>
+            <a href="{{ url_for('modelo_matematico') }}">Modelo matematico</a>
+            <a class="active" href="{{ url_for('exploracion') }}">Exploracion</a>
+            <a href="{{ url_for('residuales') }}">Residuales</a>
+            <a href="{{ url_for('mapa') }}">Mapa</a>
+            <a href="{{ url_for('resultados') }}">Prediccion</a>
+        </nav>
+    </header>
+
+    <main class="page">
+        <section class="panel">
+            <h2>Filtrar por estacion</h2>
+            <p>
+                Esta pagina no lee archivos pre-calculados: cada vez que cambias el filtro,
+                Flask carga el CSV con pandas, recalcula estadisticas con numpy y vuelve a
+                dibujar el histograma con matplotlib para
+                <strong>{{ "{:,}".format(eda.total_filas) }}</strong> filas.
+            </p>
+            <form method="get" class="prediction-form js-loading-trigger">
+                <label>Estacion
+                    <select name="estacion" onchange="this.form.submit()">
+                        <option value="">Todas las estaciones</option>
+                        {% for station in stations %}
+                        <option value="{{ station }}" {% if station == estacion_seleccionada %}selected{% endif %}>{{ station }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <button type="submit">Actualizar</button>
+            </form>
+        </section>
+
+        <section class="chart-grid two">
+            <figure class="chart-card">
+                <img src="{{ url_for('grafico_histograma', estacion=estacion_seleccionada) }}" alt="Histograma de PM2.5 en vivo">
+                <figcaption>Histograma generado en este momento <span>matplotlib + pandas</span></figcaption>
+            </figure>
+
+            <article class="panel">
+                <h2>Promedio de PM2.5 por estacion</h2>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Estacion</th>
+                                <th>Promedio PM2.5</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for nombre, valor in eda.promedio_por_estacion %}
+                            <tr>
+                                <td>{{ nombre }}</td>
+                                <td>{{ "%.2f"|format(valor) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+        </section>
+
+        <section class="panel">
+            <h2>Estadisticas descriptivas (pandas.describe)</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Estadistico</th>
+                            {% for column in eda.describe.columns %}
+                            <th>{{ column }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in eda.describe.rows %}
+                        <tr>
+                            <td>{{ row.estadistico }}</td>
+                            {% for valor in row.valores %}
+                            <td>{{ valor }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>Matriz de correlacion entre contaminantes</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            {% for column in eda.correlacion.columns %}
+                            <th>{{ column }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in eda.correlacion.rows %}
+                        <tr>
+                            <td>{{ row.variable }}</td>
+                            {% for valor in row.valores %}
+                            <td>{{ valor }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>Patron horario: promedio de PM2.5 por hora</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            {% for hora, _ in eda.promedio_por_hora %}
+                            <th>{{ hora }}h</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            {% for _, valor in eda.promedio_por_hora %}
+                            <td>{{ "%.1f"|format(valor) }}</td>
+                            {% endfor %}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+    <footer class="site-footer">
+        <p><strong>Prediccion PM2.5 Lima</strong> &mdash; Proyecto academico de Machine Learning (Lasso Regression y Decision Tree Regressor) sobre datos horarios de SENAMHI.</p>
+    </footer>
+    <script src="{{ url_for('static', filename='js/dashboard.js', v=app_version) }}"></script>
+</body>
+</html>

@@ -1,0 +1,197 @@
+{
+  "target": "PM 2.5",
+  "features": [
+    "PM 10",
+    "SO2",
+    "NO2",
+    "O3",
+    "CO",
+    "ANO",
+    "MES",
+    "DIA",
+    "HORA",
+    "ESTACION"
+  ],
+  "features_by_model": {
+    "Lasso Regression": [
+      "PM 10",
+      "SO2",
+      "NO2",
+      "O3",
+      "CO",
+      "ANO",
+      "MES",
+      "DIA",
+      "HORA"
+    ],
+    "Decision Tree Regressor": [
+      "PM 10",
+      "SO2",
+      "NO2",
+      "O3",
+      "CO",
+      "ANO",
+      "MES",
+      "DIA",
+      "HORA",
+      "ESTACION"
+    ]
+  },
+  "categorical_handling": {
+    "Lasso Regression": "No usa ESTACION porque es texto; se entrena solo con variables numericas.",
+    "Decision Tree Regressor": "Usa ESTACION transformada con OneHotEncoder dentro del pipeline."
+  },
+  "rows": 339970,
+  "columns": 11,
+  "stations": [
+    "ATE",
+    "CAMPO DE MARTE",
+    "CARABAYLLO",
+    "HUACHIPA",
+    "PUENTE PIEDRA",
+    "SAN BORJA ",
+    "SAN JUAN DE LURIGANCHO",
+    "SAN MARTIN DE PORRES",
+    "SANTA ANITA",
+    "VILLA MARIA DEL TRIUNFO"
+  ],
+  "metrics": [
+    {
+      "modelo": "Lasso Regression",
+      "mae": 9.50517366800843,
+      "mse": 191.417985378656,
+      "rmse": 13.83538887703038,
+      "r2": 0.37726961266746795
+    },
+    {
+      "modelo": "Decision Tree Regressor",
+      "mae": 7.973792349120057,
+      "mse": 143.6443972018891,
+      "rmse": 11.985174058055607,
+      "r2": 0.5326889950767668
+    }
+  ],
+  "top_importance": [
+    {
+      "variable": "PM 10",
+      "importancia": 0.6593590766601553
+    },
+    {
+      "variable": "HORA",
+      "importancia": 0.11990368757246705
+    },
+    {
+      "variable": "ESTACION_VILLA MARIA DEL TRIUNFO",
+      "importancia": 0.05006088140291808
+    },
+    {
+      "variable": "MES",
+      "importancia": 0.04452615355759708
+    },
+    {
+      "variable": "ANO",
+      "importancia": 0.025909291670574625
+    },
+    {
+      "variable": "NO2",
+      "importancia": 0.022377446826209693
+    },
+    {
+      "variable": "SO2",
+      "importancia": 0.013710170778939528
+    },
+    {
+      "variable": "ESTACION_SAN BORJA ",
+      "importancia": 0.012212063188776084
+    },
+    {
+      "variable": "DIA",
+      "importancia": 0.009771760343872993
+    },
+    {
+      "variable": "CO",
+      "importancia": 0.009047994111161558
+    },
+    {
+      "variable": "ESTACION_ATE",
+      "importancia": 0.008218927128927338
+    },
+    {
+      "variable": "ESTACION_CARABAYLLO",
+      "importancia": 0.005533380605127138
+    }
+  ],
+  "lasso_equation": {
+    "intercepto": 26.360983052995266,
+    "alpha": 0.05,
+    "terminos": [
+      {
+        "variable": "PM 10",
+        "coeficiente": 8.963456198721738
+      },
+      {
+        "variable": "HORA",
+        "coeficiente": -2.4495042046687208
+      },
+      {
+        "variable": "CO",
+        "coeficiente": 2.280549506777156
+      },
+      {
+        "variable": "SO2",
+        "coeficiente": 1.608231468061577
+      },
+      {
+        "variable": "NO2",
+        "coeficiente": 1.551924030645002
+      },
+      {
+        "variable": "MES",
+        "coeficiente": 1.175163260164378
+      },
+      {
+        "variable": "ANO",
+        "coeficiente": -0.9923386882923946
+      },
+      {
+        "variable": "O3",
+        "coeficiente": 0.2474176108184482
+      },
+      {
+        "variable": "DIA",
+        "coeficiente": 0.15016992021189352
+      }
+    ],
+    "variables_en_cero": 0
+  },
+  "tree_root_feature": "PM 10",
+  "tree_root_threshold": 82.6351203918457,
+  "tree_math": {
+    "criterion": "squared_error",
+    "n_leaves": 210,
+    "max_depth_configurado": 8,
+    "min_samples_leaf": 100,
+    "root_samples": 237979,
+    "root_prediction": 26.360983052995053
+  },
+  "tree_rules": [
+    "|--- PM 10 <= 82.64",
+    "|   |--- PM 10 <= 53.50",
+    "|   |   |--- PM 10 <= 36.04",
+    "|   |   |   |--- ESTACION_SAN JUAN DE LURIGANCHO <= 0.50",
+    "|   |   |   |   |--- truncated branch of depth 5",
+    "|   |   |   |--- ESTACION_SAN JUAN DE LURIGANCHO >  0.50",
+    "|   |   |   |   |--- truncated branch of depth 5",
+    "|   |   |--- PM 10 >  36.04",
+    "|   |   |   |--- ESTACION_SAN BORJA  <= 0.50",
+    "|   |   |   |   |--- truncated branch of depth 5",
+    "|   |   |   |--- ESTACION_SAN BORJA  >  0.50",
+    "|   |   |   |   |--- truncated branch of depth 5",
+    "|   |--- PM 10 >  53.50",
+    "|   |   |--- HORA <= 13.50",
+    "|   |   |   |--- MES <= 4.50",
+    "|   |   |   |   |--- truncated branch of depth 5",
+    "|   |   |   |--- MES >  4.50",
+    "|   |   |   |   |--- truncated branch of depth 5"
+  ]
+}

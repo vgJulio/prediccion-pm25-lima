@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard PM2.5</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css', v=app_version) }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner"></div>
+        <span>Calculando...</span>
+    </div>
+    <header class="topbar">
+        <div>
+            <p class="eyebrow">Dashboard</p>
+            <h1>Resumen del modelo</h1>
+        </div>
+        <nav>
+            <a href="{{ url_for('index') }}">Inicio</a>
+            <a class="active" href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('comparacion') }}">Comparacion</a>
+            <a href="{{ url_for('modelo_matematico') }}">Modelo matematico</a>
+            <a href="{{ url_for('exploracion') }}">Exploracion</a>
+            <a href="{{ url_for('residuales') }}">Residuales</a>
+            <a href="{{ url_for('mapa') }}">Mapa</a>
+            <a href="{{ url_for('resultados') }}">Prediccion</a>
+        </nav>
+    </header>
+
+    <main class="page dashboard-page">
+        <!-- Banner principal para indicar que el dashboard ya incluye graficos y arbol. -->
+        <section class="update-banner">
+            <div>
+                <p class="eyebrow">Dashboard actualizado</p>
+                <h2>Graficos profesionales y toma de decisiones del arbol</h2>
+            </div>
+            <a class="button" href="#decision-tree">Ver Decision Tree</a>
+        </section>
+
+        <!-- Tarjetas resumen: datos usados, mejor modelo y primera decision del arbol. -->
+        <section class="dashboard-summary">
+            <article class="summary-tile">
+                <span>Datos usados</span>
+                <strong>{{ "{:,}".format(metrics_data.rows or 0) }}</strong>
+            </article>
+            <article class="summary-tile">
+                <span>Mejor modelo</span>
+                <strong>Decision Tree</strong>
+            </article>
+            <article class="summary-tile">
+                <span>Primera decision</span>
+                <strong>{{ metrics_data.tree_root_feature or "PM 10" }}</strong>
+            </article>
+        </section>
+
+        <!-- Graficos principales generados desde scripts/entrenar_modelos.py. -->
+        <section class="chart-grid">
+            <figure class="chart-card">
+                <img class="zoomable-image" src="{{ url_for('imagenes', filename='distribucion_pm25.png', v=app_version) }}" alt="Distribucion de PM2.5" data-title="Distribucion de PM2.5">
+                <figcaption>Distribucion de PM2.5 <span>Click para ampliar</span></figcaption>
+            </figure>
+            <figure class="chart-card">
+                <img class="zoomable-image" src="{{ url_for('imagenes', filename='feature_importance.png', v=app_version) }}" alt="Importancia de variables" data-title="Variables importantes">
+                <figcaption>Variables importantes <span>Click para ampliar</span></figcaption>
+            </figure>
+            <figure class="chart-card">
+                <img class="zoomable-image" src="{{ url_for('imagenes', filename='comparacion_modelos.png', v=app_version) }}" alt="Comparacion de modelos" data-title="Comparacion por RMSE">
+                <figcaption>Comparacion por RMSE <span>Click para ampliar</span></figcaption>
+            </figure>
+        </section>
+
+        <!-- Explicacion visual de como el Decision Tree toma decisiones. -->
+        <section class="decision-section" id="decision-tree">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Toma de decisiones</p>
+                    <h2>Como decide el Decision Tree</h2>
+                </div>
+                <p>
+                    El arbol divide los datos con reglas. En este entrenamiento,
+                    la primera separacion usa
+                    <strong>{{ metrics_data.tree_root_feature or "PM 10" }}</strong>
+                    con un umbral aproximado de
+                    <strong>{{ "%.2f"|format(metrics_data.tree_root_threshold or 0) }}</strong>.
+                </p>
+            </div>
+
+            <div class="decision-grid">
+                <figure class="chart-card tree-card">
+                    <img class="zoomable-image" src="{{ url_for('imagenes', filename='decision_tree_decisiones.png', v=app_version) }}" alt="Primeras decisiones del Decision Tree" data-title="Primeros niveles del arbol">
+                    <figcaption>Primeros niveles del arbol <span>Click para ampliar</span></figcaption>
+                </figure>
+
+                <article class="panel rules-panel">
+                    <h2>Reglas principales</h2>
+                    <p>
+                        Estas reglas muestran el camino que sigue el arbol:
+                        compara una variable con un umbral y avanza hasta llegar
+                        a una prediccion de PM2.5.
+                    </p>
+                    <!-- Reglas leidas desde reports/metricas_modelos.json. -->
+                    <pre class="tree-rules">{% for line in metrics_data.tree_rules or [] %}{{ line }}
+{% endfor %}</pre>
+                </article>
+            </div>
+        </section>
+    </main>
+    <!-- Modal reutilizable: permite abrir cualquier grafico en grande al hacer click. -->
+    <div class="image-modal" id="image-modal" aria-hidden="true">
+        <button class="modal-close" type="button" aria-label="Cerrar imagen">&times;</button>
+        <figure>
+            <img id="modal-image" src="" alt="">
+            <figcaption id="modal-caption"></figcaption>
+        </figure>
+    </div>
+    <script src="{{ url_for('static', filename='js/dashboard.js', v=app_version) }}"></script>
+    <footer class="site-footer">
+        <p><strong>Prediccion PM2.5 Lima</strong> &mdash; Proyecto academico de Machine Learning (Lasso Regression y Decision Tree Regressor) sobre datos horarios de SENAMHI.</p>
+    </footer>
+</body>
+</html>
