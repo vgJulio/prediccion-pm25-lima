@@ -61,62 +61,75 @@
 
         <section class="section-heading">
             <div>
-                <p class="eyebrow">Estructura del Proyecto</p>
-                <h2>Descubre la Ciencia detrás del Proyecto</h2>
-                <p>
-                    Explora los tres pilares fundamentales de nuestro sistema: el análisis del entorno de Lima, 
-                    el sustento analítico de los modelos y las herramientas de predicción en tiempo real.
-                </p>
+                <p class="eyebrow">Recorrido</p>
+                <h2>Explora el proyecto completo</h2>
+                <p>Cada tarjeta lleva a una seccion distinta del analisis, desde los datos crudos hasta la prediccion final.</p>
             </div>
         </section>
 
         <section class="feature-grid">
-
-            <!-- BLOQUE 1: EL CONTEXTO Y ENTORNO -->
-            <a class="feature-card" href="{{ url_for('exploracion') }}">
-                <span class="feature-icon">🔍</span>
-                <h3>Exploración de datos</h3>
-                <p>Análisis estadístico, correlaciones y patrones temporales de los contaminantes del dataset.</p>
-                <span class="feature-tag">Explorar datos</span>
-            </a>
-
-            <a class="feature-card" href="{{ url_for('mapa') }}">
-                <span class="feature-icon">🗺️</span>
-                <h3>Mapa de estaciones</h3>
-                <p>Visualización geográfica de los puntos de monitoreo de SENAMHI y sus niveles promedio.</p>
-                <span class="feature-tag">Ver mapa</span>
-            </a>
-
-            <!-- BLOQUE 2: EL CEREBRO Y LA SOLUCIÓN -->
-            <a class="feature-card" href="{{ url_for('modelo_matematico') }}">
-                <span class="feature-icon">🧮</span>
-                <h3>Modelo matemático</h3>
-                <p>Interpretación analítica de la ecuación de Lasso y la estructura del árbol de decisión.</p>
-                <span class="feature-tag">Ver modelo</span>
+            <a class="feature-card" href="{{ url_for('dashboard') }}">
+                <span class="feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V10"/><path d="M11 19V5"/><path d="M18 19v-7"/></svg>
+                </span>
+                <h3>Dashboard</h3>
+                <p>Metricas de ambos modelos, importancia de variables y reglas del arbol de decision.</p>
+                <span class="feature-tag">Ver resultados</span>
             </a>
 
             <a class="feature-card" href="{{ url_for('comparacion') }}">
-                <span class="feature-icon">⚖️</span>
-                <h3>Comparación de modelos</h3>
-                <p>Evaluación directa del rendimiento de ambos algoritmos usando métricas R², MAE y RMSE.</p>
-                <span class="feature-tag">Ver comparación</span>
+                <span class="feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="4"/><circle cx="16" cy="16" r="4"/><path d="M11 8h6M7 16h6"/></svg>
+                </span>
+                <h3>Comparacion</h3>
+                <p>Lasso vs Decision Tree lado a lado, con opcion de recalcular las metricas en vivo.</p>
+                <span class="feature-tag">Comparar modelos</span>
             </a>
 
-            <!-- BLOQUE 3: LA ACCIÓN E IMPACTO -->
+            <a class="feature-card" href="{{ url_for('modelo_matematico') }}">
+                <span class="feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12M6 4c4 4 4 12 0 16M18 4c-4 4-4 12 0 16M6 20h12"/></svg>
+                </span>
+                <h3>Modelo matematico</h3>
+                <p>La ecuacion real de Lasso con sus coeficientes y como calcula el arbol cada prediccion.</p>
+                <span class="feature-tag">Entender la formula</span>
+            </a>
+
+            <a class="feature-card" href="{{ url_for('exploracion') }}">
+                <span class="feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4-4"/></svg>
+                </span>
+                <h3>Exploracion en vivo</h3>
+                <p>Estadisticas, correlaciones y patron horario calculados con pandas al momento del request.</p>
+                <span class="feature-tag">Analizar datos</span>
+            </a>
+
+            <a class="feature-card" href="{{ url_for('residuales') }}">
+                <span class="feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l4-6 4 3 4-8 4 5"/></svg>
+                </span>
+                <h3>Residuales</h3>
+                <p>En que estaciones se equivoca mas cada modelo, calculado sobre el set de prueba.</p>
+                <span class="feature-tag">Ver el error</span>
+            </a>
+
+            <a class="feature-card" href="{{ url_for('mapa') }}">
+                <span class="feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.5 7-11.5A7 7 0 0 0 5 9.5C5 14.5 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.4"/></svg>
+                </span>
+                <h3>Mapa de estaciones</h3>
+                <p>Promedio historico de PM2.5 por estacion, ubicado en un mapa interactivo de Lima.</p>
+                <span class="feature-tag">Ver ubicaciones</span>
+            </a>
+
             <a class="feature-card" href="{{ url_for('resultados') }}">
-                <span class="feature-icon">🤖</span>
-                <h3>Predicción interactiva</h3>
-                <p>Simulador en tiempo real para estimar la concentración de PM2.5 según tus variables.</p>
-                <span class="feature-tag">Probar modelo</span>
+                <span class="feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3v4M15 3v4M5 8h14l-1.2 11a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8L5 8z"/></svg>
+                </span>
+                <h3>Prediccion</h3>
+                <p>Formulario con ambos modelos, categoria de calidad de aire e historial guardado.</p>
+                <span class="feature-tag">Probar el modelo</span>
             </a>
-
-            <a class="feature-card" href="{{ url_for('dashboard') }}">
-                <span class="feature-icon">📊</span>
-                <h3>Análisis de rendimiento</h3>
-                <p>Monitoreo integral de la importancia de variables, comportamiento y análisis de residuales.</p>
-                <span class="feature-tag">Ver dashboard</span>
-            </a>
-
         </section>
     </main>
     <footer class="site-footer">

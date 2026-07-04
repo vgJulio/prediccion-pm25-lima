@@ -64,10 +64,12 @@ def exploracion():
     metrics_data = load_metrics()
     estacion = request.args.get("estacion") or None
     eda = analytics.build_eda_summary(estacion)
+    hipotesis = analytics.hipotesis_horas_punta(estacion)
     return render_template(
         "exploracion.html",
         metrics_data=metrics_data,
         eda=eda,
+        hipotesis=hipotesis,
         estacion_seleccionada=estacion,
         stations=metrics_data.get("stations", ["ATE"]),
     )
@@ -78,6 +80,14 @@ def grafico_histograma():
     # Genera el histograma de PM2.5 en memoria con matplotlib, sin guardar archivo en disco.
     estacion = request.args.get("estacion") or None
     png_bytes = analytics.build_histogram_png(estacion)
+    return Response(png_bytes, mimetype="image/png")
+
+
+@app.route("/grafico/horas-punta.png")
+def grafico_horas_punta():
+    # Grafico de barras por hora resaltando las horas punta de la hipotesis.
+    estacion = request.args.get("estacion") or None
+    png_bytes = analytics.build_horas_punta_png(estacion)
     return Response(png_bytes, mimetype="image/png")
 
 

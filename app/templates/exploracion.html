@@ -155,6 +155,73 @@
                 </table>
             </div>
         </section>
+
+        <!-- Prueba de hipotesis: ¿los mayores niveles de PM2.5 ocurren en horas punta? -->
+        <section class="panel">
+            <h2>Prueba de hipotesis: horas punta</h2>
+            <p>
+                <strong>H0:</strong> los mayores niveles de contaminacion se presentan en
+                horas punta (5:00-7:00 am y 5:00-7:00 pm).<br>
+                <strong>H1:</strong> los mayores niveles de contaminacion NO se presentan
+                en esas horas.
+            </p>
+            <p>
+                Se compara el promedio de PM2.5 en horas punta contra el resto del dia con
+                una prueba t de Welch (<code>scipy.stats.ttest_ind</code>, varianzas no
+                asumidas iguales), calculada en este momento sobre
+                {% if estacion_seleccionada %}la estacion <strong>{{ estacion_seleccionada }}</strong>{% else %}todas las estaciones{% endif %}.
+            </p>
+
+            {% if hipotesis.disponible %}
+            <div class="chart-grid two">
+                <figure class="chart-card">
+                    <img src="{{ url_for('grafico_horas_punta', estacion=estacion_seleccionada) }}" alt="Promedio de PM2.5 por hora con horas punta resaltadas">
+                    <figcaption>Barras en color de acento: horas punta de la hipotesis <span>matplotlib + scipy</span></figcaption>
+                </figure>
+
+                <div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Grupo</th>
+                                    <th>Promedio PM2.5</th>
+                                    <th>Filas</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Horas punta (5-7am, 5-7pm)</td>
+                                    <td>{{ hipotesis.promedio_punta }}</td>
+                                    <td>{{ "{:,}".format(hipotesis.filas_punta) }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Resto del dia</td>
+                                    <td>{{ hipotesis.promedio_no_punta }}</td>
+                                    <td>{{ "{:,}".format(hipotesis.filas_no_punta) }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p>
+                        Estadistico t = {{ hipotesis.t_stat }}, valor p =
+                        {{ "%.6f"|format(hipotesis.p_value) }}.
+                        Hora con mayor promedio real: <strong>{{ hipotesis.hora_pico }}:00h</strong>
+                        ({{ hipotesis.valor_pico }} ug/m3).
+                    </p>
+                </div>
+            </div>
+
+            <div class="update-banner" style="margin-top: 18px;">
+                <div>
+                    <p class="eyebrow">Conclusion (alpha = 0.05)</p>
+                    <h2>{{ hipotesis.conclusion }}</h2>
+                </div>
+            </div>
+            {% else %}
+            <p>No hay suficientes datos para esta estacion para correr la prueba.</p>
+            {% endif %}
+        </section>
     </main>
     <footer class="site-footer">
         <p><strong>Prediccion PM2.5 Lima</strong> &mdash; Proyecto academico de Machine Learning (Lasso Regression y Decision Tree Regressor) sobre datos horarios de SENAMHI.</p>

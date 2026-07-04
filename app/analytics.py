@@ -10,6 +10,7 @@ matplotlib.use("Agg")  # Backend sin ventana: necesario para generar imagenes de
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from scipy import stats
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 # Mismo patron dual de import que usan app.py y predictor.py.
@@ -29,6 +30,9 @@ TREE_PATH = MODELS_DIR / "decision_tree_regressor.pkl"
 
 TARGET = "PM 2.5"
 POLLUTANTS = ["PM 10", "PM 2.5", "SO2", "NO2", "O3", "CO"]
+
+# Horas punta segun la hipotesis a probar: 5-7am y 5-7pm.
+HORAS_PUNTA = [5, 6, 7, 17, 18, 19]
 
 # Mismos colores que usa scripts/entrenar_modelos.py para que los graficos en vivo combinen
 # con las imagenes pre-generadas del dashboard.
@@ -286,3 +290,107 @@ def recalcular_metricas_en_vivo() -> list[dict]:
             }
         )
     return resultados
+
+
+def hipotesis_horas_punta(estacion: str | None = None) -> dict:
+    # Prueba H0: los mayores niveles de PM2.5 se dan en horas punta (5-7am y 5-7pm)
+    # contra H1: los mayores niveles NO se dan en esas horas.
+    # Se compara el grupo "hora punta" contra el resto del dia con una prueba t de Welch
+    # (no asume varianzas iguales), usando scipy.stats.
+    df = load_clean_data()
+    if estacion:
+        df = df[df["ESTACION"] == estacion]
+
+    es_punta = df["HORA"].isin(HORAS_PUNTA)
+    grupo_punta = df.loc[es_punta, TARGET].dropna()
+    grupo_no_punta = df.loc[~es_punta, TARGET].dropna()
+
+    if grupo_punta.empty or grupo_no_punta.empty:
+        return {"disponible": False}
+
+    t_stat, p_value = stats.ttest_ind(grupo_punta, grupo_no_punta, equal_var=False)
+    promedio_punta = float(grupo_punta.mean())
+    promedio_no_punta = float(grupo_no_punta.mean())
+
+    promedio_por_hora = df.groupby("HORA")[TARGET].mean().round(2)
+    hora_pico = int(promedio_por_hora.idxmax())
+    valor_pico = float(promedio_por_hora.max())
+
+    significativo = p_value < 0.05
+    if not significativo:
+        conclusion = (
+            "No hay diferencia estadisticamente significativa entre las horas punta y "
+            "el resto del dia (no se puede rechazar H0 con estos datos)."
+        )
+        se_acepta_h0 = None
+    elif promedio_punta > promedio_no_punta:
+        conclusion = (
+            "Se acepta H0: la contaminacion en horas punta es significativamente mayor "
+            "que en el resto del dia."
+        )
+        se_acepta_h0 = True
+    else:
+        conclusion = (
+            "Se rechaza H0 y se acepta H1: los niveles en horas punta NO son los mas "
+            f"altos del dia (de hecho son menores). El pico real ocurre a las {hora_pico}:00h."
+        )
+        se_acepta_h0 = False
+
+    return {
+        "disponible": True,
+        "horas_punta": HORAS_PUNTA,
+        "promedio_punta": round(promedio_punta, 2),
+        "promedio_no_punta": round(promedio_no_punta, 2),
+        "filas_punta": int(len(grupo_punta)),
+        "filas_no_punta": int(len(grupo_no_punta)),
+        "t_stat": round(float(t_stat), 3),
+        "p_value": float(p_value),
+        "significativo": significativo,
+        "se_acepta_h0": se_acepta_h0,
+        "conclusion": conclusion,
+        "hora_pico": hora_pico,
+        "valor_pico": valor_pico,
+    }
+
+
+def build_horas_punta_png(estacion: str | None = None) -> bytes:
+    # Grafico de barras del promedio de PM2.5 por hora, resaltando en color de acento las
+    # horas punta (5-7am y 5-7pm) definidas en la hipotesis.
+    df = load_clean_data()
+    titulo = "Promedio de PM2.5 por hora - todas las estaciones"
+    if estacion:
+        df = df[df["ESTACION"] == estacion]
+        titulo = f"Promedio de PM2.5 por hora - {estacion}"
+
+    promedio_por_hora = df.groupby("HORA")[TARGET].mean()
+    colores = [
+        ACCENT_COLOR if hora in HORAS_PUNTA else SECONDARY_COLOR
+        for hora in promedio_por_hora.index
+    ]
+
+    fig, axis = plt.subplots(figsize=(8.4, 5.0), facecolor="#f7faf8")
+    axis.bar(promedio_por_hora.index, promedio_por_hora.values, color=colores)
+    axis.set_title(titulo, fontsize=13, fontweight="bold", pad=10)
+    axis.set_xlabel("Hora del dia")
+    axis.set_ylabel("PM2.5 promedio")
+    axis.set_xticks(range(0, 24, 2))
+
+    # Leyenda manual: un parche de cada color.
+    from matplotlib.patches import Patch
+
+    axis.legend(
+        handles=[
+            Patch(color=ACCENT_COLOR, label="Hora punta (hipotesis)"),
+            Patch(color=SECONDARY_COLOR, label="Resto del dia"),
+        ],
+        frameon=False,
+        loc="upper left",
+    )
+    style_axis(axis)
+    fig.tight_layout()
+
+    buffer = io.BytesIO()
+    fig.savefig(buffer, format="png", dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    buffer.seek(0)
+    return buffer.getvalue()
